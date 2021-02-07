@@ -1,0 +1,21 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+.ipynb_checkpoints/
+.idea/
+
+results_images/
+keras_frcnn/
+images/
+backup/
+models/
+data/
+
+*.h5
+*.hdf5
+
+train_labels.txt
+val_labels.txt
+
