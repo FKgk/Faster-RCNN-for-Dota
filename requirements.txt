@@ -1,5 +1,7 @@
+pydot>=1.4.1
+pillow>=8.1.0
 tqdm>=4.56.0
+pandas>=1.2.1
 jupyter>=1.0.0
 tensorflow>=2.2
-pandas>=1.2.1
 opencv-python>=4.5.1
