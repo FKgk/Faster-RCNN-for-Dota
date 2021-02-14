@@ -36,6 +36,8 @@ def cal_S_C(Y, P):
 
 def rpn_loss_regr(num_anchors):
     def rpn_loss_regr_fixed_num(y_true, y_pred):
+        print('rpn_loss_regr', y_true.shape, y_pred.shape)
+        
         batch_size, height, width, c = y_true.shape
         
         y_rpn_overlap_repeat = K.reshape(y_true[:, :, :, :4 * num_anchors], (batch_size * height * width * 9, 4))
@@ -54,40 +56,32 @@ def rpn_loss_regr(num_anchors):
         IIOU = IOU - (S_C - (S + S_asterisk - S_I)) / (S_C + K.epsilon())
         L_IIOU = 1 - IIOU
         
-        print(f"y_rpn_overlap: {y_rpn_overlap}")
-        print(f"L_IIOU: {L_IIOU}")
-        print(f"mean: {tf.math.reduce_mean(L_IIOU)}")
-        
-        
-        return lambda_rpn_regr * K.sum(y_rpn_overlap * L_IIOU) / (K.sum(y_rpn_overlap) + epsilon)
+        return lambda_rpn_regr * K.sum(y_rpn_overlap * L_IIOU) / (K.sum(y_rpn_overlap) + K.epsilon())
     return rpn_loss_regr_fixed_num
-
 
 def rpn_loss_cls(num_anchors):
     def rpn_loss_cls_fixed_num(y_true, y_pred):
-#         print('loss_cls', y_true.shape)
+        print('rpn_loss_cls', y_true.shape)
         return lambda_rpn_class * K.sum(y_true[:, :, :, :num_anchors] * \
             K.binary_crossentropy(y_pred[:, :, :, :], y_true[:, :, :, num_anchors:])) / K.sum(epsilon + y_true[:, :, :, :num_anchors])
 
     return rpn_loss_cls_fixed_num
 
-
 def class_loss_regr(num_classes):
     def class_loss_regr_fixed_num(y_true, y_pred):
         print(f"class_loss_regr {y_true.shape} , {y_pred.shape}")
         print(f"class_loss_regr {y_true.dtype} , {y_pred.dtype}")
-        assert(y_true.shape == y_pred.shape)
-        
-        x = y_true - y_pred
-        x_abs = K.abs(x)
-        x_bool = K.cast(K.less_equal(x_abs, 1.0), 'float32')
-        return lambda_cls_regr * K.sum(y_true * (x_bool * (0.5 * x * x) + (1 - x_bool) * (x_abs - 0.5))) / K.sum(epsilon + y_true)
-        
+
         batch_size, object_num, class_num = y_true.shape
         
-        true_rpn_regr = K.reshape(y_true, (batch_size * height * width * 9, 4))
-        pred_rpn_regr = K.reshape(y_pred, (batch_size * height * width * 9, 4))
-
+        print(y_true[:, :, :4 * num_classes].shape)
+        print(y_true[:, :, 4*num_classes:].shape)
+        
+        y_rpn_overlap_repeat = K.reshape(y_true[:, :, :4 * num_classes], (batch_size * object_num * num_classes, 4))
+        y_rpn_regr = K.reshape(y_true[:, :, 4*num_classes:], (batch_size * object_num * num_classes, 4))
+        pred_rpn_regr = K.reshape(y_pred, (batch_size * object_num * num_classes, 4))      
+        
+        y_rpn_overlap = K.transpose(y_rpn_overlap_repeat)[0]
         y_rpn_regr = K.transpose(y_rpn_regr)
         pred_rpn_regr = K.transpose(pred_rpn_regr)
         
@@ -99,17 +93,8 @@ def class_loss_regr(num_classes):
         IIOU = IOU - (S_C - (S + S_asterisk - S_I)) / (S_C + K.epsilon())
         L_IIOU = 1 - IIOU
         
-        return lambda_cls_regr * K.sum(y_rpn_overlap * L_IIOU) / (epsilon + K.sum(y_rpn_overlap))
+        return lambda_cls_regr * K.sum(y_rpn_overlap * L_IIOU) / (K.sum(y_rpn_overlap) + K.epsilon())
     return class_loss_regr_fixed_num
-
-# def class_loss_regr(num_classes):
-#     def class_loss_regr_fixed_num(y_true, y_pred):
-#         x = y_true[:, :, 4*num_classes:] - y_pred
-#         x_abs = K.abs(x)
-#         x_bool = K.cast(K.less_equal(x_abs, 1.0), 'float32')
-#         return lambda_cls_regr * K.sum(y_true[:, :, :4*num_classes] * (x_bool * (0.5 * x * x) + (1 - x_bool) * (x_abs - 0.5))) / K.sum(epsilon + y_true[:, :, :4*num_classes])
-#     return class_loss_regr_fixed_num
-
 
 def class_loss_cls(y_true, y_pred):
     print(f"class_loss_cls {y_true.shape} , {y_pred.shape}")
