@@ -46,38 +46,20 @@ def rpn_loss_regr(num_anchors):
         y_rpn_regr = K.transpose(y_rpn_regr)
         pred_rpn_regr = K.transpose(pred_rpn_regr)
         
-#         print("shape")
-#         print(y_rpn_overlap.shape, y_rpn_overlap.dtype)
-#         print(y_rpn_regr.shape, y_rpn_regr[0].shape, y_rpn_regr.dtype)
-#         print(pred_rpn_regr.shape, pred_rpn_regr[0].shape, pred_rpn_regr.dtype)
-        
         S_asterisk, S = cal_S(y_rpn_regr, pred_rpn_regr)
         S_I = cal_S_I(y_rpn_regr, pred_rpn_regr)
         S_C = cal_S_C(y_rpn_regr, pred_rpn_regr)
         
-#         print("S")
-#         print(S_asterisk.shape, S.shape)
-#         print(S_I.shape, S_C.shape)
-        
-        IOU = S_I / (S + S_asterisk - S_I)
-        IIOU = IOU - (S_C - (S + S_asterisk - S_I)) / S_C
+        IOU = S_I / (S + S_asterisk - S_I + K.epsilon())
+        IIOU = IOU - (S_C - (S + S_asterisk - S_I)) / (S_C + K.epsilon())
         L_IIOU = 1 - IIOU
         
-#         print("IOU")
-#         print(IOU.shape, IIOU.shape, L_IIOU.shape)
-#         print(tf.math.reduce_sum(y_rpn_overlap * L_IIOU))
-#         print("END+++++++++++++++++++++++")
+        print(f"y_rpn_overlap: {y_rpn_overlap}")
+        print(f"L_IIOU: {L_IIOU}")
+        print(f"mean: {tf.math.reduce_mean(L_IIOU)}")
         
-        return lambda_rpn_regr * K.sum(y_rpn_overlap * L_IIOU) / (epsilon + K.sum(y_rpn_overlap))
-
-#         print('loss_regr', y_true.shape)
-#         x = y_true[:, :, :, 4 * num_anchors:] - y_pred
-#         x_abs = K.abs(x)
-#         x_bool = K.cast(K.less_equal(x_abs, 1.0), tf.float32)
-
-#         return lambda_rpn_regr * K.sum(
-#             y_true[:, :, :, :4 * num_anchors] * (x_bool * (0.5 * x * x) + (1 - x_bool) * (x_abs - 0.5))) / (epsilon + K.sum(y_true[:, :, :, :4 * num_anchors])) # smooth l1
-
+        
+        return lambda_rpn_regr * K.sum(y_rpn_overlap * L_IIOU) / (K.sum(y_rpn_overlap) + epsilon)
     return rpn_loss_regr_fixed_num
 
 
@@ -92,12 +74,45 @@ def rpn_loss_cls(num_anchors):
 
 def class_loss_regr(num_classes):
     def class_loss_regr_fixed_num(y_true, y_pred):
-        x = y_true[:, :, 4*num_classes:] - y_pred
+        print(f"class_loss_regr {y_true.shape} , {y_pred.shape}")
+        print(f"class_loss_regr {y_true.dtype} , {y_pred.dtype}")
+        assert(y_true.shape == y_pred.shape)
+        
+        x = y_true - y_pred
         x_abs = K.abs(x)
         x_bool = K.cast(K.less_equal(x_abs, 1.0), 'float32')
-        return lambda_cls_regr * K.sum(y_true[:, :, :4*num_classes] * (x_bool * (0.5 * x * x) + (1 - x_bool) * (x_abs - 0.5))) / K.sum(epsilon + y_true[:, :, :4*num_classes])
+        return lambda_cls_regr * K.sum(y_true * (x_bool * (0.5 * x * x) + (1 - x_bool) * (x_abs - 0.5))) / K.sum(epsilon + y_true)
+        
+        batch_size, object_num, class_num = y_true.shape
+        
+        true_rpn_regr = K.reshape(y_true, (batch_size * height * width * 9, 4))
+        pred_rpn_regr = K.reshape(y_pred, (batch_size * height * width * 9, 4))
+
+        y_rpn_regr = K.transpose(y_rpn_regr)
+        pred_rpn_regr = K.transpose(pred_rpn_regr)
+        
+        S_asterisk, S = cal_S(y_rpn_regr, pred_rpn_regr)
+        S_I = cal_S_I(y_rpn_regr, pred_rpn_regr)
+        S_C = cal_S_C(y_rpn_regr, pred_rpn_regr)
+        
+        IOU = S_I / (S + S_asterisk - S_I + K.epsilon())
+        IIOU = IOU - (S_C - (S + S_asterisk - S_I)) / (S_C + K.epsilon())
+        L_IIOU = 1 - IIOU
+        
+        return lambda_cls_regr * K.sum(y_rpn_overlap * L_IIOU) / (epsilon + K.sum(y_rpn_overlap))
     return class_loss_regr_fixed_num
+
+# def class_loss_regr(num_classes):
+#     def class_loss_regr_fixed_num(y_true, y_pred):
+#         x = y_true[:, :, 4*num_classes:] - y_pred
+#         x_abs = K.abs(x)
+#         x_bool = K.cast(K.less_equal(x_abs, 1.0), 'float32')
+#         return lambda_cls_regr * K.sum(y_true[:, :, :4*num_classes] * (x_bool * (0.5 * x * x) + (1 - x_bool) * (x_abs - 0.5))) / K.sum(epsilon + y_true[:, :, :4*num_classes])
+#     return class_loss_regr_fixed_num
 
 
 def class_loss_cls(y_true, y_pred):
+    print(f"class_loss_cls {y_true.shape} , {y_pred.shape}")
+    print(f"class_loss_cls {y_true.dtype} , {y_pred.dtype}")
+    
     return lambda_cls_class * K.mean(categorical_crossentropy(y_true[0, :, :], y_pred[0, :, :]))
