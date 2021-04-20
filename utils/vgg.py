@@ -75,13 +75,13 @@ def nn_base(input_tensor=None, trainable=False):
     x = Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv2')(x)
     x = Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv3')(x)
     x = MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool')(x)
-    x1 = x
+    # x1 = x
 
     # Block 4
     x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv1')(x)
     x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv2')(x)
     x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv3')(x) # 5 X 5 
-    x2 = x
+    # x2 = x
     x = MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool')(x) # 2 X 2
     # 2 ** 4
 
@@ -89,15 +89,15 @@ def nn_base(input_tensor=None, trainable=False):
     x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv1')(x)
     x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv2')(x)
     x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv3')(x)
-    x3 = UpSampling2D((2,2), interpolation='bilinear')(x) # 4 X 4
+    # x3 = UpSampling2D((2,2), interpolation='bilinear')(x) # 4 X 4
     # x = MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool')(x)
 
-    x1 = BatchNormalization()(x1)
-    x2 = BatchNormalization()(x2)
-    x3 = BatchNormalization()(x3)
+    # x1 = BatchNormalization()(x1)
+    # x2 = BatchNormalization()(x2)
+    # x3 = BatchNormalization()(x3)
 
-    x = Concatenate()([x1,x2,x3])
-    x = attach_attention_module(x)
+    # x = Concatenate()([x1,x2,x3])
+    # x = attach_attention_module(x)
 
     return x
 

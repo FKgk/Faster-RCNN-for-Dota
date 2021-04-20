@@ -10,22 +10,21 @@ def augment(img_data, C, augment=True): # cv2 -> tf.image
     pool_size = 16
 
     img_data_aug = copy.deepcopy(img_data)
-
     img = tf.io.read_file(img_data['filepath'])
     img = tf.image.decode_image(img)
 
     if len(img.shape) == 2 or img.shape[-1] == 1:
         img = tf.image.grayscale_to_rgb(img)
 
-    print(img_data['filepath'].split('\\')[-1], img.shape)
     if img.shape[0] % pool_size > 0 or img.shape[1] % pool_size > 0:
         pad_h = (pool_size - (img.shape[0] % pool_size)) % pool_size
         pad_w = (pool_size - (img.shape[1] % pool_size)) % pool_size
 
         img = tf.pad(img, ((0, pad_h), (0, pad_w), (0, 0)), "CONSTANT", constant_values=0)
-    print(img_data['filepath'].split('\\')[-1], img.shape)
+    print('\n', img_data['filepath'].split('\\')[-1], img.shape)
 
     img = tf.cast(img, dtype=tf.float32)
+    
 
     if augment:
         rows, cols = img.shape[:2]
@@ -74,9 +73,9 @@ def augment(img_data, C, augment=True): # cv2 -> tf.image
                     bbox['y1'] = x1
                     bbox['y2'] = x2
         
-        if C.use_random_brightness and np.random.randint(0, 2) == 0:
-            img = tf.image.random_brightness(img, 30)
-            img = tf.clip_by_value(img, 0.0, 255.0)
+        # if C.use_random_brightness and np.random.randint(0, 2) == 0:
+        #     img = tf.image.random_brightness(img, 10)
+        #     img = tf.clip_by_value(img, 0.0, 255.0)
 
     img_data_aug['height'] = img.shape[0]
     img_data_aug['width'] = img.shape[1]

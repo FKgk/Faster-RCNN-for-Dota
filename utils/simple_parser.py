@@ -2,18 +2,17 @@ import numpy as np
 from tqdm import tqdm
 import tensorflow as tf
 
-def get_data(input_path, class_mapping):
+def get_data(input_path, class_mapping, sep=','):
     classes_count = dict((key, 0) for key in class_mapping.keys())
     all_imgs = {}
 
     with open(input_path, 'r') as f:
         for line in tqdm(f):
-            (filename, x1, y1, x2, y2, class_name) = line.strip().split(',')
+            (filename, x1, y1, x2, y2, class_name) = line.strip().split(sep)
             classes_count[class_name] += 1
 
             if filename not in all_imgs:
-                img = tf.io.read_file(filename)
-                img = tf.image.decode_image(img)
+                img = tf.image.decode_image(tf.io.read_file(filename))
                 (rows, cols) = img.shape[:2]
                 
                 all_imgs[filename] = {
