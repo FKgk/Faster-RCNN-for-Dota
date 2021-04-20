@@ -1,4 +1,5 @@
 import copy
+import datetime
 import numpy as np
 import tensorflow as tf
 
@@ -21,7 +22,10 @@ def augment(img_data, C, augment=True): # cv2 -> tf.image
         pad_w = (pool_size - (img.shape[1] % pool_size)) % pool_size
 
         img = tf.pad(img, ((0, pad_h), (0, pad_w), (0, 0)), "CONSTANT", constant_values=0)
-    print('\n', img_data['filepath'].split('\\')[-1], img.shape)
+    print('\n', 
+        'time:', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 
+        '\tname:', img_data['filepath'].split('/')[-1][:-12], 
+        '\tshape:', img.shape[:2])
 
     img = tf.cast(img, dtype=tf.float32)
     
