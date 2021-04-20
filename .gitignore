@@ -12,10 +12,15 @@ images/
 backup/
 models/
 data/
+datav2/
+save_dota_aug_train_change/
+SmallObjectAugmentation_2/
 
 *.h5
 *.hdf5
 
 train_labels.txt
 val_labels.txt
+
+
 

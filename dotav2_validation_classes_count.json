@@ -1,0 +1,21 @@
+{
+	"plane": 2531,
+	"ship": 8960,
+	"storage-tank": 2888,
+	"baseball-diamond": 214,
+	"tennis-court": 760,
+	"basketball-court": 132,
+	"ground-track-field": 144,
+	"harbor": 2090,
+	"bridge": 464,
+	"large-vehicle": 4387,
+	"small-vehicle": 5438,
+	"helicopter": 73,
+	"roundabout": 179,
+	"soccer-ball-field": 153,
+	"swimming-pool": 440,
+	"container-crane": 0,
+	"airport": 0,
+	"helipad": 0,
+	"bg": 0
+}
