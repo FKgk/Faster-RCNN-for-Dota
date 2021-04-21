@@ -8,7 +8,7 @@ def augment(img_data, C, augment=True): # cv2 -> tf.image
     assert 'bboxes' in img_data
     assert 'width' in img_data
     assert 'height' in img_data
-    pool_size = 16
+    pool_size = 32
 
     img_data_aug = copy.deepcopy(img_data)
     img = tf.io.read_file(img_data['filepath'])
