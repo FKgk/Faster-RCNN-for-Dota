@@ -299,7 +299,7 @@ def get_anchor_gt(all_img_data, class_count, C, img_length_calc_function, mode='
 		assert(cols == width)
 		assert(rows == height)
 
-		if width * height > 4000 * 4000:
+		if width > 4000 or height > 4000:
 			resized_width, resized_height = width // 2, height // 2
 			x_img = tf.image.resize(x_img, (resized_height, resized_width), 'bicubic')
 		else:
